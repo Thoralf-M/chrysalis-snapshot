@@ -1,4 +1,4 @@
-Snapshot tool to get all addresses with their amount and outputs from a snapshot file and writes it to a .json file.
+Snapshot tool to get all addresses with their amount and outputs from a snapshot file and writes it to a .json file with the ledger_index prepended.
 
 Download a new full snapshot from https://chrysalis-dbfiles.iota.org/snapshots/hornet/latest-full_snapshot.bin or another source and then run it with `cargo run`
 

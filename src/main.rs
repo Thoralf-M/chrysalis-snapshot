@@ -13,17 +13,25 @@ const SNAPSHOT_PATH: &str = "full_snapshot.bin";
 const OUTPUT_PATH: &str = "snapshot.json";
 const BECH_32_HRP: &str = "iota";
 
+// Data of all addresses and the treasury for a certain ledger_index
 #[derive(Clone, Serialize, Deserialize)]
 pub struct SnapshotData {
+    // The milestone index
     #[serde(rename = "ledgerIndex")]
     ledger_index: u32,
+    // All addresses bech32 encoded with their balance and output ids
     addresses: HashMap<String, AddressData>,
+    // The remaining amount in the treasury (legacy network)
     #[serde(rename = "treasuryOutputAmount")]
     treasury_output_amount: u64,
 }
+
+/// Data for an address
 #[derive(Clone, Serialize, Deserialize)]
 pub struct AddressData {
+    // The total balance of the address
     pub balance: u64,
+    // The output ids of the outputs for this address
     pub output_ids: Vec<OutputId>,
 }
 
@@ -63,15 +71,12 @@ fn read_snapshot_addresses_data(snapshot_path: &str) -> Result<SnapshotData> {
 
 /// Get output amount and address from an Output
 pub fn get_output_amount_and_address(output: &Output) -> Result<(u64, String)> {
-    match output {
-        Output::Treasury(_) => Err(anyhow!("Treasury output is not allowed")),
-        Output::SignatureLockedSingle(ref r) => {
-            Ok((r.amount(), r.address().to_bech32(BECH_32_HRP)))
-        }
-        Output::SignatureLockedDustAllowance(ref r) => {
-            Ok((r.amount(), r.address().to_bech32(BECH_32_HRP)))
-        }
-    }
+    let (amount, address) = match output {
+        Output::Treasury(_) => return Err(anyhow!("Treasury output is not allowed")),
+        Output::SignatureLockedSingle(ref r) => (r.amount(), r.address()),
+        Output::SignatureLockedDustAllowance(ref r) => (r.amount(), r.address()),
+    };
+    Ok((amount, address.to_bech32(BECH_32_HRP)))
 }
 
 /// Function to write address snapshot data to a file
